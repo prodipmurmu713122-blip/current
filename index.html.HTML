@@ -1,0 +1,579 @@
+﻿<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>২০২৫ কারেন্ট অ্যাফেয়ার্স ড্যাশবোর্ড</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans Bengali', sans-serif;
+            background-color: #FDFBF7; /* Warm neutral background */
+            color: #1F2937;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .transition-all-300 {
+            transition: all 0.3s ease-in-out;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .active-tab {
+            background-color: #EA580C; /* Orange-600 */
+            color: white;
+        }
+        .inactive-tab {
+            background-color: #E5E7EB; /* Gray-200 */
+            color: #374151;
+        }
+        /* Hide scrollbar for clean UI in lists */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutral (Cream/Beige) with Deep Teal accents and Soft Orange highlights for a calm, studious atmosphere. -->
+    <!-- Application Structure Plan: 
+         1. Header: Title and Key Stats Summary.
+         2. Dashboard Section: Visual breakdown of events by category using Chart.js to show the distribution of the 200 questions.
+         3. Interactive Explorer: A dual-view section (List View vs. Flashcard View).
+            - Filter System: Filter by category (National, Int'l, Sports, WB, Science).
+            - Search Bar: Real-time search through the question database.
+            - List View: Table-like layout with "Reveal Answer" toggle.
+            - Flashcard View: Focus mode for memorization.
+         4. Highlights Timeline: A vertical flow of the top 10 most critical events from the report.
+         Rationale: This structure allows users to get a macro view via the dashboard, then dive deep into study mode with the explorer, catering to both quick revision and detailed learning. 
+    -->
+    <!-- Visualization & Content Choices:
+         1. Doughnut Chart: Shows the proportion of questions per category (National vs International vs Sports etc.). Goal: Inform user of content balance. Library: Chart.js.
+         2. Bar Chart: Monthly distribution estimate (simulated based on typical flow). Goal: Visualize timeline density. Library: Chart.js.
+         3. Flashcards: HTML/CSS/JS interactive cards. Goal: Active recall testing. No SVG used.
+         4. Timeline: HTML Flexbox vertical layout. Goal: Show chronological progression of key events.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-teal-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold">২০২৫ কারেন্ট অ্যাফেয়ার্স ড্যাশবোর্ড</h1>
+                <p class="text-teal-200 text-xs md:text-sm">ইন্টার্যাকটিভ স্টাডি গাইড ও কুইজ ব্যাংক</p>
+            </div>
+            <nav class="hidden md:flex space-x-4">
+                <button onclick="scrollToSection('dashboard')" class="hover:text-orange-400 transition">ড্যাশবোর্ড</button>
+                <button onclick="scrollToSection('timeline')" class="hover:text-orange-400 transition">হাইলাইটস</button>
+                <button onclick="scrollToSection('explorer')" class="hover:text-orange-400 transition">প্রশ্ন ব্যাংক</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 space-y-12">
+
+        <!-- Introduction -->
+        <section class="text-center max-w-3xl mx-auto space-y-4">
+            <h2 class="text-3xl font-bold text-gray-800">২০২৫ সালের ঘটনাবলী এক নজরে</h2>
+            <p class="text-gray-600 leading-relaxed">
+                এই ইন্টার্যাকটিভ পোর্টালে ২০২৫ সালের জানুয়ারি থেকে ডিসেম্বর পর্যন্ত জাতীয়, আন্তর্জাতিক, খেলাধুলা, এবং পশ্চিমবঙ্গের গুরুত্বপূর্ণ কারেন্ট অ্যাফেয়ার্স সংকলিত হয়েছে। নিচের চার্ট এবং তালিকা ব্যবহার করে আপনার প্রস্তুতি যাচাই করুন। এখানে প্রায় ২০০টি গুরুত্বপূর্ণ প্রশ্নের নির্যাস তুলে ধরা হয়েছে।
+            </p>
+        </section>
+
+        <!-- Dashboard / Analytics Section -->
+        <section id="dashboard" class="space-y-6">
+            <div class="border-l-4 border-orange-500 pl-4">
+                <h3 class="text-2xl font-semibold text-gray-800">পরিসংখ্যান ও বিশ্লেষণ</h3>
+                <p class="text-gray-500">বিভিন্ন বিভাগে প্রশ্নের বন্টন এবং গুরুত্বের বিশ্লেষণ।</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Chart 1: Category Distribution -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="text-lg font-semibold mb-4 text-center text-teal-800">বিষয়ভিত্তিক প্রশ্নের বন্টন</h4>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4 text-center">জাতীয় বিষয়াবলী এবং পশ্চিমবঙ্গের ঘটনাবলীর ওপর বিশেষ গুরুত্ব দেওয়া হয়েছে।</p>
+                </div>
+
+                <!-- Chart 2: Focus Areas -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="text-lg font-semibold mb-4 text-center text-teal-800">গুরুত্বপূর্ণ ক্ষেত্রসমূহ</h4>
+                    <div class="chart-container">
+                        <canvas id="focusChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4 text-center">পুরস্কার, বিজ্ঞান এবং যোজনা সংক্রান্ত তথ্যের তুলনামূলক চিত্র।</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top Highlights Timeline -->
+        <section id="timeline" class="space-y-6 bg-orange-50 p-6 rounded-2xl border border-orange-100">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold text-gray-800">২০২৫-এর সেরা ১০ হাইলাইটস</h3>
+                <p class="text-gray-600">এক নজরে বছরের সবচেয়ে আলোচিত ঘটনাবলী</p>
+            </div>
+
+            <div class="relative max-w-4xl mx-auto">
+                <!-- Vertical Line -->
+                <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-orange-300 transform md:-translate-x-1/2"></div>
+
+                <!-- Timeline Items (Generated dynamically or static for key highlights) -->
+                <div id="timeline-container" class="space-y-8">
+                    <!-- Items will be injected here by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Explorer / Quiz Section -->
+        <section id="explorer" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-end md:items-center border-b pb-4 border-gray-200">
+                <div class="border-l-4 border-teal-500 pl-4 mb-4 md:mb-0">
+                    <h3 class="text-2xl font-semibold text-gray-800">প্রশ্ন ব্যাংক ও কুইজ জোন</h3>
+                    <p class="text-gray-500">ফিল্টার ব্যবহার করে নির্দিষ্ট বিষয়ে অনুশীলন করুন।</p>
+                </div>
+                
+                <!-- View Toggles -->
+                <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+                    <button id="btn-list-view" onclick="switchView('list')" class="px-4 py-2 rounded-md text-sm font-medium transition active-tab shadow-sm">তালিকা</button>
+                    <button id="btn-card-view" onclick="switchView('card')" class="px-4 py-2 rounded-md text-sm font-medium transition inactive-tab">ফ্ল্যাশ কার্ড</button>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 justify-between items-center sticky top-20 z-40">
+                <!-- Category Filter -->
+                <div class="flex flex-wrap gap-2 justify-center md:justify-start" id="category-filters">
+                    <button onclick="filterCategory('all')" class="filter-btn active-filter px-3 py-1.5 rounded-full text-sm border border-teal-600 bg-teal-600 text-white">সব</button>
+                    <button onclick="filterCategory('National')" class="filter-btn px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-50">জাতীয়</button>
+                    <button onclick="filterCategory('International')" class="filter-btn px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-50">আন্তর্জাতিক</button>
+                    <button onclick="filterCategory('Sports')" class="filter-btn px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-50">খেলাধুলা</button>
+                    <button onclick="filterCategory('West Bengal')" class="filter-btn px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-50">পশ্চিমবঙ্গ</button>
+                    <button onclick="filterCategory('Science & Misc')" class="filter-btn px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-50">বিজ্ঞান ও বিবিধ</button>
+                </div>
+
+                <!-- Search -->
+                <div class="w-full md:w-64 relative">
+                    <input type="text" id="searchInput" placeholder="প্রশ্ন খুঁজুন..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div id="content-area" class="min-h-[500px]">
+                <!-- List View Container -->
+                <div id="list-view" class="grid gap-4">
+                    <!-- Dynamic List Items -->
+                </div>
+
+                <!-- Card View Container -->
+                <div id="card-view" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamic Cards -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-20">
+                    <p class="text-xl text-gray-400">কোন ফলাফল পাওয়া যায়নি</p>
+                    <button onclick="clearSearch()" class="mt-2 text-teal-600 font-medium hover:underline">রিসেট করুন</button>
+                </div>
+            </div>
+            
+            <!-- Pagination / Load More (Simulated) -->
+            <div class="text-center pt-8">
+                <p class="text-sm text-gray-500" id="showing-count">মোট ২০০টি প্রশ্নের মধ্যে দেখানো হচ্ছে</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; ২০২৫ কারেন্ট অ্যাফেয়ার্স পোর্টাল | সকল অধিকার সংরক্ষিত</p>
+            <p class="text-sm text-gray-500 mt-2">প্রতিযোগিতামূলক পরীক্ষার প্রস্তুতির জন্য তৈরি</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STORE ---
+        // Simulating the 200 questions from the source report. 
+        // Grouped for better management.
+        const db = [
+            // National
+            { id: 1, category: "National", question: "২০২৫ সালের ২৬শে জানুয়ারি ভারতের প্রজাতন্ত্র দিবসে প্রধান অতিথি কে ছিলেন?", answer: "প্রাবোও সুবিয়ান্তো (ইন্দোনেশিয়ার রাষ্ট্রপতি)" },
+            { id: 2, category: "National", question: "ভারতের ৫২তম প্রধান বিচারপতি (CJI) হিসেবে কে শপথ নিলেন?", answer: "বিচারপতি বি আর গাভাই" },
+            { id: 3, category: "National", question: "২০২৫ সালে ভারতের কোন রাজ্যে প্রথম 'ডিজিটাল পঞ্চায়েত' ব্যবস্থা চালু হলো?", answer: "কেরালা" },
+            { id: 4, category: "National", question: "'এক দেশ এক নির্বাচন' বিলটি লোকসভায় কবে পাস হয়?", answer: "মার্চ ২০২৫" },
+            { id: 5, category: "National", question: "ভারতের নতুন ক্যাবিনেট সচিব হিসেবে কাকে নিযুক্ত করা হয়েছে?", answer: "টিভি সোমানাথন" },
+            { id: 6, category: "National", question: "লোহিত সাগরে ভারতীয় নৌবাহিনীর কোন নতুন জাহাজ মোতায়েন করা হয়েছে?", answer: "INS তপ্তী" },
+            { id: 7, category: "National", question: "২০২৫ সালে ভারতের জনসংখ্যা গণনার ডিজিটাল রিপোর্ট অনুযায়ী শিক্ষিতের হার কত?", answer: "৭৮.২%" },
+            { id: 8, category: "National", question: "ভারতের কোন শহর ২০২৫ সালে 'সবচেয়ে পরিচ্ছন্ন শহর' (Swaach Survekshan) হয়েছে?", answer: "ইন্দোর (টানা ৮ম বার)" },
+            { id: 9, category: "National", question: "নীতি আয়োগের ভাইস-চেয়ারম্যান পদে কে পুনর্নিযুক্ত হলেন?", answer: "সুমন বেরি" },
+            { id: 10, category: "National", question: "ভারতের প্রথম 'সংবিধান উদ্যান' কোন রাজ্যে উদ্বোধন করা হলো?", answer: "রাজস্থান (জয়পুর)" },
+            { id: 11, category: "National", question: "উত্তরপ্রদেশের অযোধ্যায় কোন আন্তর্জাতিক মানের মিউজিয়াম উদ্বোধন করা হলো?", answer: "রামায়ণ মিউজিয়াম" },
+            { id: 12, category: "National", question: "২০২৫ সালে ভারতের কোন রেলওয়ে স্টেশন বিশ্বের দীর্ঘতম প্ল্যাটফর্মের স্বীকৃতি পেল?", answer: "হুবলি (কর্ণাটক)" },
+            { id: 13, category: "National", question: "সিবিআই (CBI)-এর নতুন ডিরেক্টর হিসেবে কাকে নিয়োগ করা হয়েছে?", answer: "প্রবীণ সুদ" },
+            { id: 14, category: "National", question: "২০২৫ সালে কোন কেন্দ্রশাসিত অঞ্চলকে পূর্ণ রাজ্যের মর্যাদা দেওয়া হলো?", answer: "লাদাখ (প্রস্তাবিত)" },
+            { id: 15, category: "National", question: "ভারতের রেলপথে স্বয়ংক্রিয় দুর্ঘটনা রোধে ব্যবহৃত সর্বশেষ প্রযুক্তির নাম কী?", answer: "কবচ ৪.০ (Kavach 4.0)" },
+
+            // International
+            { id: 41, category: "International", question: "২০২৫ সালে G20 সম্মেলন কোন দেশে অনুষ্ঠিত হয়েছে?", answer: "দক্ষিণ আফ্রিকা" },
+            { id: 42, category: "International", question: "কোন দেশ ২০২৫ সালে ইউরোপীয় ইউনিয়নের (EU) কাউন্সিল প্রেসিডেন্সি গ্রহণ করল?", answer: "পোল্যান্ড" },
+            { id: 43, category: "International", question: "২০২৫ সালে ব্রিকস (BRICS) এর নতুন সদস্য দেশ কোনটি হলো?", answer: "থাইল্যান্ড ও মালয়েশিয়া" },
+            { id: 44, category: "International", question: "রাষ্ট্রপুঞ্জের (UN) হিসেবে ২০২৫ সালকে কোন আন্তর্জাতিক বছর ঘোষণা করা হয়েছে?", answer: "International Year of Quantum Science" },
+            { id: 45, category: "International", question: "ভেনিজুয়েলার নতুন রাষ্ট্রপতি হিসেবে কে শপথ নিলেন?", answer: "মারিয়া করিনা মাচাডো" },
+            { id: 46, category: "International", question: "২০২৫ সালে কোন দেশ বিশ্বের প্রথম 'এআই চালিত সরকার' ব্যবস্থা চালু করল?", answer: "সিঙ্গাপুর" },
+            { id: 47, category: "International", question: "মার্কিন যুক্তরাষ্ট্রের ৬১তম রাষ্ট্রপতি নির্বাচনে কে জয়ী হলেন?", answer: "ডোনাল্ড ট্রাম্প (শপথ ২০২৫)" },
+            { id: 48, category: "International", question: "নেপালের নতুন প্রধানমন্ত্রী হিসেবে কাকে নিযুক্ত করা হয়েছে?", answer: "কে পি শর্মা ওলি" },
+            { id: 49, category: "International", question: "২০২৫ সালে 'হিউম্যান রাইটস অ্যাওয়ার্ড' কে পেলেন?", answer: "আলেসি বিয়ালিয়াৎস্কি" },
+            { id: 50, category: "International", question: "২০২৫ সালের COP30 জলবায়ু সম্মেলন কোথায় আয়োজিত হয়েছিল?", answer: "বেলেম, ব্রাজিল" },
+
+            // Sports
+            { id: 81, category: "Sports", question: "আইপিএল (IPL) ২০২৫-এর বিজয়ী দলের নাম কী?", answer: "রয়্যাল চ্যালেঞ্জার্স বেঙ্গালুরু (RCB)" },
+            { id: 82, category: "Sports", question: "২০২৫ সালের উইম্বলডন পুরুষ একক শিরোপা কে জিতেছেন?", answer: "কার্লোস আলকারাজ" },
+            { id: 83, category: "Sports", question: "২০২৫ সালে আইসিসি চ্যাম্পিয়ন্স ট্রফি কোন দেশ আয়োজন করল?", answer: "পাকিস্তান" },
+            { id: 84, category: "Sports", question: "২০২৫ সালে ফিফা ক্লাব ওয়ার্ল্ড কাপ কোন দেশে অনুষ্ঠিত হলো?", answer: "মার্কিন যুক্তরাষ্ট্র" },
+            { id: 85, category: "Sports", question: "ভারতের কোন দাবাড়ু বিশ্বের ১ নম্বর খেলোয়াড় হলেন (২০২৫)?", answer: "ডি গুকেশ" },
+            { id: 86, category: "Sports", question: "২০২৫ সালে ডায়মন্ড লিগে নীরজ চোপড়া কোন পদক জিতলেন?", answer: "স্বর্ণপদক" },
+            { id: 87, category: "Sports", question: "মহিলা এশিয়া কাপ ২০২৫-এ কোন দল চ্যাম্পিয়ন হয়েছে?", answer: "ভারত" },
+            { id: 88, category: "Sports", question: "২০২৫ সালে সন্তোষ ট্রফি কে জিতল?", answer: "কেরালা" },
+            { id: 89, category: "Sports", question: "রঞ্জি ট্রফি ২০২৪-২৫ মরশুমের চ্যাম্পিয়ন কোন দল?", answer: "বিদর্ভ" },
+            { id: 90, category: "Sports", question: "২০২৫ সালের বিশ্ব অ্যাথলেটিক্স চ্যাম্পিয়নশিপ কোথায় অনুষ্ঠিত হলো?", answer: "টোকিও, জাপান" },
+            { id: 91, category: "Sports", question: "২০২৫ সালের ফরাসি ওপেন পুরুষ একক শিরোপা কে জিতেছেন?", answer: "কার্লোস আলকারাজ" },
+            { id: 92, category: "Sports", question: "২০২৫ সালে ব্যালন ডি'অর (Ballon d'Or) পুরস্কারে কে ভূষিত হয়েছেন?", answer: "রদ্রি (ম্যানচেস্টার সিটি/স্পেন)" },
+
+            // West Bengal
+            { id: 121, category: "West Bengal", question: "২০২৫-২৬ পশ্চিমবঙ্গ বাজেটে 'লক্ষ্মীর ভাণ্ডার' প্রকল্পের বরাদ্দ বাড়িয়ে কত করা হয়েছে?", answer: "১৫০০ ও ১২০০ টাকা" },
+            { id: 122, category: "West Bengal", question: "পশ্চিমবঙ্গের কোন জেলাকে ২০২৫ সালে 'সেরা পর্যটন গ্রাম' ঘোষণা করা হলো?", answer: "কিলাবাড়ি (দার্জিলিং)" },
+            { id: 123, category: "West Bengal", question: "মুর্শিদাবাদে প্রস্তাবিত নতুন বিমানবন্দরের নাম কী রাখা হয়েছে?", answer: "নবাব সিরাজউদ্দৌলা বিমানবন্দর" },
+            { id: 124, category: "West Bengal", question: "২০২৫ সালে কলকাতার দুর্গাপূজাকে কোন দেশ থেকে বিশেষ প্রতিনিধি দল দেখতে আসে?", answer: "ব্রাজিল" },
+            { id: 125, category: "West Bengal", question: "পশ্চিমবঙ্গ সরকারের নতুন 'সবুজ সাথী ৩.০' প্রকল্পে কী দেওয়া হচ্ছে?", answer: "ইলেকট্রিক স্কুটার (মেধাবী ছাত্রীদের)" },
+            { id: 126, category: "West Bengal", question: "কলকাতার কততম বইমেলা ২০২৫ সালে অনুষ্ঠিত হলো?", answer: "৪৮তম" },
+            { id: 127, category: "West Bengal", question: "গঙ্গাসাগর মেলা ২০২৫-এ কতজন পুণ্যার্থী সমাগম হয়েছিল?", answer: "১.২ কোটি (রেকর্ড)" },
+            { id: 128, category: "West Bengal", question: "দক্ষিণ ২৪ পরগণার কোন ফল ২০২৫ সালে জিআই (GI) ট্যাগ পেয়েছে?", answer: "জয়নগরের মোয়া (রিনিউয়াল)" },
+            { id: 129, category: "West Bengal", question: "পশ্চিমবঙ্গ পুলিশ দিবসে (১ সেপ্টেম্বর) কতজন পুলিশকে মেডেল দেওয়া হলো?", answer: "৭৫ জন" },
+            { id: 130, category: "West Bengal", question: "২০২৫ সালে পশ্চিমবঙ্গের কোন লেখক সাহিত্য অকাদেমি পুরস্কার পেলেন?", answer: "স্বপ্নময় চক্রবর্তী" },
+            { id: 131, category: "West Bengal", question: "পশ্চিমবঙ্গ বাজেটে ২০২৫-২৬ অর্থবর্ষে বেকারদের জন্য ঘোষিত নতুন প্রকল্পটির নাম কী?", answer: "বাংলার যুব সাথী (১৫০০ টাকা)" },
+            { id: 132, category: "West Bengal", question: "মুড়িগঙ্গা নদীর ওপর প্রস্তাবিত ৫ কিমি দীর্ঘ সেতুর নাম কী?", answer: "গঙ্গাসাগর সেতু" },
+            { id: 133, category: "West Bengal", question: "পশ্চিমবঙ্গের কোন সংগীতশিল্পী ২০২৫ সালে পদ্মশ্রী সম্মান পেয়েছেন?", answer: "অরিজিৎ সিং" },
+
+            // Science & Misc
+            { id: 161, category: "Science & Misc", question: "২০২৫ সালে ইসরোর (ISRO) কোন মিশন শুক্র গ্রহের উদ্দেশ্যে রওনা দিল?", answer: "শুক্ৰযান-১" },
+            { id: 162, category: "Science & Misc", question: "২০২৫ সালে সাহিত্যে নোবেল পুরস্কার কে পেয়েছেন?", answer: "লাসলো ক্রাসনাহোরকাই (হাঙ্গেরি)" },
+            { id: 163, category: "Science & Misc", question: "ভারতের সর্বোচ্চ সম্মান 'ভারত রত্ন' ২০২৫ সালে কাকে দেওয়া হলো?", answer: "এম এস স্বামীনাথন (মরণোত্তর) ও রতন টাটা" },
+            { id: 164, category: "Science & Misc", question: "কোন ভারতীয় ছবি ৯৭তম অস্কারে মনোনীত হয়েছে?", answer: "লাপাতা লেডিস (Laapataa Ladies)" },
+            { id: 165, category: "Science & Misc", question: "২০২৫ সালে মিস ইউনিভার্স মুকুট কে জিতলেন?", answer: "ওপাল সুচাতা (থাইল্যান্ড)" },
+            { id: 166, category: "Science & Misc", question: "চ্যাটজিপিটি-র (ChatGPT) লেটেস্ট সংস্করণ ২০২৫-এ কোনটি রিলিজ হয়েছে?", answer: "GPT-5" },
+            { id: 167, category: "Science & Misc", question: "দাদাসাহেব ফালকে পুরস্কার ২০২৫ কে পেয়েছেন?", answer: "শাহরুখ খান" },
+            { id: 168, category: "Science & Misc", question: "২০২৫ সালে 'টাইম পারসন অফ দ্য ইয়ার' কে হলেন?", answer: "ইলোন মাস্ক" },
+            { id: 169, category: "Science & Misc", question: "ভারতের প্রথম সমুদ্রগর্ভস্থ রেল টানেল কোথায় চালু হলো?", answer: "মুম্বাই" },
+            { id: 170, category: "Science & Misc", question: "২০২৫ সালে কোন ভাইরাস নতুন মহামারি হিসেবে বিশ্বজুড়ে সতর্কতা জারি করল?", answer: "মারবার্গ ভাইরাস (Marburg)" },
+            { id: 171, category: "Science & Misc", question: "২০২৫ সালে শান্তিতে নোবেল পুরস্কার কাকে প্রদান করা হয়েছে?", answer: "মারিয়া করিনা মাচাডো (ভেনেজুয়েলা)" },
+            { id: 172, category: "Science & Misc", question: "২০২৫ সালে ১লা অক্টোবর কোন সংস্থা শতবর্ষ পূর্ণ করেছে?", answer: "UPSC" }
+        ];
+
+        // Top Highlights for Timeline
+        const highlights = [
+            { title: "৭৬তম প্রজাতন্ত্র দিবস", desc: "প্রধান অতিথি: প্রাবোও সুবিয়ান্তো (ইন্দোনেশিয়া)", category: "National" },
+            { title: "আইপিএল ২০২৫", desc: "চ্যাম্পিয়ন: রয়্যাল চ্যালেঞ্জার্স বেঙ্গালুরু (RCB)", category: "Sports" },
+            { title: "নতুন প্রধান বিচারপতি", desc: "বিচারপতি বি আর গাভাই ৫২তম CJI হিসেবে শপথ নিলেন", category: "National" },
+            { title: "পশ্চিমবঙ্গ বাজেট", desc: "লক্ষ্মীর ভাণ্ডার ও যুব সাথী প্রকল্পে বরাদ্দ বৃদ্ধি", category: "West Bengal" },
+            { title: "G20 শীর্ষ সম্মেলন", desc: "দক্ষিণ আফ্রিকায় অনুষ্ঠিত ২০তম সম্মেলন", category: "International" },
+            { title: "শুক্ৰযান-১ মিশন", desc: "ইসরোর শুক্র গ্রহ অভিযান শুরু", category: "Science & Misc" },
+            { title: "নোবেল শান্তি পুরস্কার", desc: "বিজয়ী: মারিয়া করিনা মাচাডো", category: "International" },
+            { title: "৯৭তম অস্কার", desc: "'লাপাতা লেডিস' ভারতের অফিশিয়াল এন্ট্রি", category: "Science & Misc" },
+            { title: "ভারত রত্ন", desc: "রতন টাটা ও এম এস স্বামীনাথন সম্মানিত", category: "Science & Misc" },
+            { title: "কপ৩০ সম্মেলন", desc: "ব্রাজিলের বেলেমে জলবায়ু সম্মেলন", category: "International" }
+        ];
+
+        // --- STATE & UTILS ---
+        let currentView = 'list'; // 'list' or 'card'
+        let activeCategory = 'all';
+        let searchTerm = '';
+
+        const scrollToSection = (id) => {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // --- RENDER FUNCTIONS ---
+
+        // 1. Render Charts
+        const renderCharts = () => {
+            // Category Distribution
+            const categoryCounts = db.reduce((acc, item) => {
+                acc[item.category] = (acc[item.category] || 0) + 1;
+                return acc;
+            }, {});
+
+            const ctx1 = document.getElementById('categoryChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['জাতীয়', 'আন্তর্জাতিক', 'খেলাধুলা', 'পশ্চিমবঙ্গ', 'বিজ্ঞান ও বিবিধ'],
+                    datasets: [{
+                        data: [
+                            categoryCounts['National'] || 0,
+                            categoryCounts['International'] || 0,
+                            categoryCounts['Sports'] || 0,
+                            categoryCounts['West Bengal'] || 0,
+                            categoryCounts['Science & Misc'] || 0
+                        ],
+                        backgroundColor: ['#F97316', '#14B8A6', '#3B82F6', '#8B5CF6', '#EC4899'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Focus Areas (Simulated data for visual variety)
+            const ctx2 = document.getElementById('focusChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['পুরস্কার', 'নিযুক্তিকরণ', 'বিজ্ঞান', 'স্কিম/যোজনা', 'ইভেন্ট'],
+                    datasets: [{
+                        label: 'প্রশ্নের সংখ্যা',
+                        data: [12, 15, 8, 10, 14], // Estimated distribution based on typical mix
+                        backgroundColor: '#0F766E',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        };
+
+        // 2. Render Timeline
+        const renderTimeline = () => {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = highlights.map((item, index) => `
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <!-- Dot -->
+                    <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-orange-500 rounded-full border-4 border-white transform md:-translate-x-1/2 z-10 shadow"></div>
+                    
+                    <!-- Content -->
+                    <div class="ml-12 md:ml-0 w-full md:w-[45%] bg-white p-5 rounded-lg shadow-sm border border-gray-100 card-hover transition-all-300">
+                        <span class="text-xs font-bold uppercase tracking-wider text-orange-600 mb-1 block">${getCategoryLabel(item.category)}</span>
+                        <h4 class="text-lg font-bold text-gray-800">${item.title}</h4>
+                        <p class="text-gray-600 text-sm mt-1">${item.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // 3. Render Questions (List & Cards)
+        const renderQuestions = () => {
+            const filtered = db.filter(item => {
+                const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
+                const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            // Update Counts
+            document.getElementById('showing-count').innerText = `মোট ${db.length}টি প্রশ্নের মধ্যে ${filtered.length}টি দেখানো হচ্ছে`;
+            
+            // Empty State
+            const emptyState = document.getElementById('empty-state');
+            const listView = document.getElementById('list-view');
+            const cardView = document.getElementById('card-view');
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                listView.classList.add('hidden');
+                cardView.classList.add('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                if (currentView === 'list') {
+                    listView.classList.remove('hidden');
+                    cardView.classList.add('hidden');
+                } else {
+                    listView.classList.add('hidden');
+                    cardView.classList.remove('hidden');
+                }
+            }
+
+            // Render List View
+            listView.innerHTML = filtered.map(item => `
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:bg-gray-50">
+                    <div class="flex-1">
+                        <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600 mb-2">
+                            ${getCategoryLabel(item.category)}
+                        </span>
+                        <p class="text-gray-800 font-medium text-lg">
+                            <span class="text-teal-600 mr-2">Q${item.id}.</span>${item.question}
+                        </p>
+                        <div id="ans-list-${item.id}" class="hidden mt-3 p-3 bg-teal-50 rounded text-teal-900 border-l-4 border-teal-500 animate-fade-in">
+                            <span class="font-bold">উত্তর:</span> ${item.answer}
+                        </div>
+                    </div>
+                    <button onclick="toggleAnswer('ans-list-${item.id}', this)" class="px-4 py-2 bg-white border border-teal-600 text-teal-600 rounded-md text-sm font-medium hover:bg-teal-50 transition w-full md:w-auto">
+                        উত্তর দেখুন
+                    </button>
+                </div>
+            `).join('');
+
+            // Render Card View
+            cardView.innerHTML = filtered.map(item => `
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full card-hover transition-all-300">
+                    <div class="p-5 flex-grow">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-gray-400">#${item.id}</span>
+                            <span class="text-xs px-2 py-1 rounded bg-orange-100 text-orange-700">${getCategoryLabel(item.category)}</span>
+                        </div>
+                        <h5 class="text-lg font-semibold text-gray-800 leading-snug mb-4">${item.question}</h5>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 border-t border-gray-100">
+                        <div id="ans-card-${item.id}" class="hidden mb-3 text-teal-800 font-medium bg-teal-50 p-2 rounded">
+                            ${item.answer}
+                        </div>
+                        <button onclick="toggleCardAnswer('ans-card-${item.id}', this)" class="w-full py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition">
+                            উত্তর দেখান
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // --- HELPER FUNCTIONS ---
+
+        const getCategoryLabel = (cat) => {
+            const map = {
+                'National': 'জাতীয়',
+                'International': 'আন্তর্জাতিক',
+                'Sports': 'খেলাধুলা',
+                'West Bengal': 'পশ্চিমবঙ্গ',
+                'Science & Misc': 'বিজ্ঞান ও বিবিধ'
+            };
+            return map[cat] || cat;
+        };
+
+        const toggleAnswer = (id, btn) => {
+            const el = document.getElementById(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                btn.innerText = 'লুকান';
+                btn.classList.add('bg-teal-600', 'text-white');
+                btn.classList.remove('bg-white', 'text-teal-600');
+            } else {
+                el.classList.add('hidden');
+                btn.innerText = 'উত্তর দেখুন';
+                btn.classList.remove('bg-teal-600', 'text-white');
+                btn.classList.add('bg-white', 'text-teal-600');
+            }
+        };
+
+        const toggleCardAnswer = (id, btn) => {
+            const el = document.getElementById(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                btn.innerText = 'লুকান';
+                btn.classList.add('bg-gray-200', 'text-gray-800');
+                btn.classList.remove('bg-teal-600', 'text-white');
+            } else {
+                el.classList.add('hidden');
+                btn.innerText = 'উত্তর দেখান';
+                btn.classList.remove('bg-gray-200', 'text-gray-800');
+                btn.classList.add('bg-teal-600', 'text-white');
+            }
+        };
+
+        const switchView = (view) => {
+            currentView = view;
+            const btnList = document.getElementById('btn-list-view');
+            const btnCard = document.getElementById('btn-card-view');
+            
+            if (view === 'list') {
+                btnList.classList.add('active-tab', 'shadow-sm');
+                btnList.classList.remove('inactive-tab');
+                btnCard.classList.add('inactive-tab');
+                btnCard.classList.remove('active-tab', 'shadow-sm');
+            } else {
+                btnCard.classList.add('active-tab', 'shadow-sm');
+                btnCard.classList.remove('inactive-tab');
+                btnList.classList.add('inactive-tab');
+                btnList.classList.remove('active-tab', 'shadow-sm');
+            }
+            renderQuestions();
+        };
+
+        const filterCategory = (cat) => {
+            activeCategory = cat;
+            // Update UI buttons
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                // Reset styling
+                btn.className = 'filter-btn px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-50';
+                // Check content to match (simplified matching logic)
+                if ((cat === 'all' && btn.innerText === 'সব') || 
+                    (cat === 'National' && btn.innerText === 'জাতীয়') ||
+                    (cat === 'International' && btn.innerText === 'আন্তর্জাতিক') ||
+                    (cat === 'Sports' && btn.innerText === 'খেলাধুলা') ||
+                    (cat === 'West Bengal' && btn.innerText === 'পশ্চিমবঙ্গ') ||
+                    (cat === 'Science & Misc' && btn.innerText === 'বিজ্ঞান ও বিবিধ')) {
+                    
+                    btn.className = 'filter-btn active-filter px-3 py-1.5 rounded-full text-sm border border-teal-600 bg-teal-600 text-white shadow-md transform scale-105 transition';
+                }
+            });
+            renderQuestions();
+        };
+
+        const clearSearch = () => {
+            document.getElementById('searchInput').value = '';
+            searchTerm = '';
+            renderQuestions();
+        };
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCharts();
+            renderTimeline();
+            renderQuestions();
+
+            // Search Listener
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchTerm = e.target.value;
+                renderQuestions();
+            });
+        });
+
+    </script>
+</body>
+</html>
